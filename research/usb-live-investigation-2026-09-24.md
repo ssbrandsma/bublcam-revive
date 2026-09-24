@@ -47,7 +47,13 @@ The reconnect failure was on the same hub port/location (`6&22C573BB&0&1` suffix
 
 That pseudo-ID is **not** a Bublcam USB identity. No endpoint, class, or serial descriptor can be recovered from this failed enumeration.
 
-The `RNDIS/Ethernet Gadget` product string agrees with the older `g_ether` logs, but a product string is not proof that Windows exposed a usable Ethernet interface. The observed `usbser` binding matches the reported class/subclass compatible ID and explains why Windows offered COM4 instead. Whether that binding reflects firmware descriptors, a Windows class-selection quirk, or an incomplete/unstable enumeration is unresolved. We did not open COM4 because the reconnect failed and the requested phase was passive PnP/network comparison only. No driver was installed or changed.
+The `RNDIS/Ethernet Gadget` product string agrees with the older `g_ether` logs, but a product string is not proof that Windows exposed a usable Ethernet interface. The observed `usbser` binding matches the reported class/subclass compatible ID and explains why Windows offered COM4 instead. Whether that binding reflects firmware descriptors, a Windows class-selection quirk, or an incomplete/unstable enumeration is unresolved. At this stage, COM4 was not opened because the reconnect failed and the requested phase was passive PnP/network comparison only. No driver was installed or changed.
+
+## Later passive COM4 attempt
+
+COM4 reappeared with the same `0525:A4A2` PnP InstanceId, class `Ports`, status `OK`, and Config Manager problem code `0`. `Win32_SerialPort` reported `MaxBaudRate: 115200` and `SettableBaudRate: True`, but its current `BaudRate` field was empty. These are Windows device/driver properties, **not a measurement of the camera's serial speed**.
+
+One receive-only attempt used `COM4` at 115200, 8 data bits, no parity, one stop bit, no flow control, with DTR and RTS explicitly disabled before opening. `System.IO.Ports.SerialPort.Open()` failed immediately with `A device attached to the system is not functioning.` No bytes were read, no serial data was sent, and no capture file was produced. Windows still listed COM4 as PnP `OK` afterward. Because the port failed to open, the planned 57600/38400/9600 listening attempts were **not** made; no baud rate, login prompt, shell, or live serial protocol can be established from this result. The cause could be device, cable, enumeration, or driver behavior; this test does not isolate it. The exact private attempt record is under `bubl_research/responses/usb_serial_probe/`.
 
 ## Earlier attachment snapshot (before cable #3 comparison)
 
