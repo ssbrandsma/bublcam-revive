@@ -14,7 +14,7 @@ The current work is based on physical inspection of one Bublcam, local media and
 | Raw still and THM | Four-view JPEG layout confirmed; identical calibration decoded from one original JPEG and its list thumbnail |
 | Open-source stitcher | Independent geometric stitcher, batch runner, and local viewer integrated; one 4096×2048 panorama and a one-pair batch run verified here. Separate full-collection run reported 545/545; see [geometry findings](docs/stitching.md) |
 | Live streaming and video | RTSP and one short four-view MP4 verified; see [live test](research/live-capture-2026-09-24.md) |
-| USB networking | A signed exact-ID RNDIS package from Microsoft Update Catalog replaced the incorrect COM4 binding on one Windows 11 PC. USB `192.168.2.2` answered ping and OSC; a short RTSP handshake succeeded. See [USB networking](docs/usb-network.md) |
+| USB networking | A signed exact-ID RNDIS package replaced the incorrect COM4 binding on one Windows 11 PC. USB `192.168.2.2` answered ping and OSC; a short RTSP handshake succeeded. A full USB TCP scan found only port 80 open while idle; see [USB networking](docs/usb-network.md) |
 | UART / I²C | Pads identified; voltage and access unverified |
 | Root filesystem / FPGA | Filesystem not dumped; FPGA identified, bitstream not extracted |
 

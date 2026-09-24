@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+Completed a SYN-only scan of all 65,535 USB TCP ports while the camera was awake: only 80/tcp open at idle, all others closed after five initial nonresponses were rechecked. The Wi-Fi and UDP port inventories remain untested.
+
 Installed a Microsoft WHCP-signed, exact-`0525:A4A2` Acer RNDIS package from Microsoft Update Catalog on one Windows 11 PC. After a cable reconnect, the Bublcam appeared as a USB network adapter. A temporary USB-only `192.168.2.1/24` host address enabled ping and OSC to the camera at `192.168.2.2`; RTSP `OPTIONS` and `DESCRIBE` also succeeded. No USB RTP frames were decoded.
 
 Recorded a passive COM4 attempt after the Bublcam USB node returned: Windows reported `MaxBaudRate: 115200`, but opening at 115200 8N1 with DTR/RTS off failed before any data transfer. Actual serial speed/function remains unknown.
