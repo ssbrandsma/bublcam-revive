@@ -2,7 +2,7 @@
 
 Bublcam implements an Open Spherical Camera-style API plus vendor extensions.
 
-The read-only API is confirmed over Wi-Fi on this unit. A controlled [USB connection investigation](../research/usb-live-investigation-2026-09-24.md) identified the camera's USB PnP node but no USB network interface or route; reconnecting caused a descriptor failure. OSC over USB is therefore **not** verified live. Do not treat the historical USB address `192.168.2.2` as a working endpoint without routing evidence.
+The read-only API is confirmed over Wi-Fi and was also reached over a verified USB/RNDIS route at `192.168.2.2` on this unit: `/osc/info` and `/osc/state` both succeeded on 2026-09-24. See [USB networking](usb-network.md). A later [interface-comparison attempt](../research/usb-wifi-comparison-2026-09-25.md) observed intermittent RNDIS resets, so USB API availability must not be confused with sustained USB link reliability. Verify the host route before probing the USB address.
 
 ## Advertised by live firmware 2.1.1
 ```text
