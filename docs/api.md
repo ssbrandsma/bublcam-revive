@@ -27,7 +27,7 @@ Observed identity:
 {
  "manufacturer":"Bubl",
  "model":"bubl1",
- "serialNumber":"f4b85e1a4e97",
+ "serialNumber":"<redacted>",
  "firmwareVersion":"2.1.1",
  "_bublAtmelVersion":"1",
  "_bublAlteraVersion":512,

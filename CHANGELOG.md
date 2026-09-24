@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+Installed a Microsoft WHCP-signed, exact-`0525:A4A2` Acer RNDIS package from Microsoft Update Catalog on one Windows 11 PC. After a cable reconnect, the Bublcam appeared as a USB network adapter. A temporary USB-only `192.168.2.1/24` host address enabled ping and OSC to the camera at `192.168.2.2`; RTSP `OPTIONS` and `DESCRIBE` also succeeded. No USB RTP frames were decoded.
+
 Recorded a passive COM4 attempt after the Bublcam USB node returned: Windows reported `MaxBaudRate: 115200`, but opening at 115200 8N1 with DTR/RTS off failed before any data transfer. Actual serial speed/function remains unknown.
 
 Compared connected, unplugged, and reconnected Windows PnP snapshots for USB cable #3. Identified Bublcam `0525:A4A2` as a COM4/`usbser` binding with `RNDIS/Ethernet Gadget` bus string; reconnection produced descriptor failure Code 43. No USB network adapter or `192.168.2.x` route appeared.

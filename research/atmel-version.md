@@ -1,6 +1,6 @@
 # Differing `_bublAtmelVersion` observations
 
-Two `/osc/info` observations for model `bubl1`, serial `f4b85e1a4e97`, firmware `2.1.1`, and endpoint `192.168.0.100:80` differ:
+Two `/osc/info` observations from the same tested `bubl1` unit (serial kept private), firmware `2.1.1`, and endpoint `192.168.0.100:80` differ:
 
 | Field | Earlier supplied JSON | Later saved response |
 |---|---:|---:|

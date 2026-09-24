@@ -11,6 +11,7 @@
 - A controlled session returned ID `"0"`; the client closed that same ID and confirmed idle state. Live `getOptions` returned values for 41 non-sensitive names.
 - One new 3840×3840 JPEG and one short 1920×1920 MP4 were captured; both show a 2×2 four-fisheye layout. The MP4 contains H.264 and 16 kHz mono AAC.
 - `_bublStream` returned a dynamic RTSP endpoint on port 8554. RTSP `OPTIONS` and `DESCRIBE` succeeded; SDP announced H.264 video and MP4A-LATM audio. The stream was stopped and reached `done`.
+- On one Windows 11 host, installing a Microsoft WHCP-signed exact-`0525:A4A2` RNDIS package from Microsoft Update Catalog moved the Bublcam from COM4 to a USB network adapter. With host `192.168.2.1/24`, camera `192.168.2.2` responded to ping, OSC `/osc/info` and `/osc/state`, and RTSP `OPTIONS`/`DESCRIBE` for one short test stream. No USB RTP frames were decoded.
 - Stable boot at 4.00 V / >=1 A limit; ~0.6 A running.
 - The local `BUBL0001.JPG` is a 3840×3840 four-fisheye 2×2 mosaic. The integrated stitcher rendered it at 4096×2048, reproduced the 266.25 equisolid/camera-to-world SIFT score and zero turns, and completed a one-pair batch smoke test. A separate investigation reports all 545 JPGs in its SD-card collection are 3840×3840 with matching THMs and 545 readable 4096×2048 panoramas. The complete batch has not been independently rerun here.
 - The reported collection contains three calibration UUIDs, one with two closely related variants; use the matching THM for each image.
@@ -25,7 +26,7 @@
 - FPGA configured at boot.
 - older Node.js and later Scarlet generation.
 - USB Ethernet gadget.
-- Archived logs explicitly show `g_ether` ready and Avahi on `usb0` at `192.168.2.2`; another historical log records Scarlet HTTP requests from `192.168.2.1` to `.2.2:80` rejected for missing the required header. A controlled 2026-09-24 Windows unplug diff identified `0525:A4A2` as `RNDIS/Ethernet Gadget` in the bus description, but Windows bound `usbser` as COM4, not a network adapter. Reconnection failed device-descriptor enumeration (Code 43). USB networking remains unverified live.
+- Archived logs explicitly show `g_ether` ready and Avahi on `usb0` at `192.168.2.2`; another historical log records Scarlet HTTP requests from `192.168.2.1` to `.2.2:80` rejected for missing the required header. A controlled 2026-09-24 Windows unplug diff first identified `0525:A4A2` as `RNDIS/Ethernet Gadget` in the bus description, despite an incorrect `usbser`/COM4 binding. A later signed driver install and successful USB test confirmed the historical network path live; see [USB networking](../docs/usb-network.md).
 - COM4 later reappeared with PnP status OK, but a single passive 115200 8N1 open with DTR/RTS off failed before receiving data. No baud rate or shell service is established.
 - FFmpeg in firmware logs; the live RTSP server identifies itself as GStreamer.
 - Matched-feature tests reported across nine frames strongly favor camera-to-world `R`, zero extra quadrant turns, and equisolid-angle over equidistant or stereographic. See [stitching findings](../docs/stitching.md).

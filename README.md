@@ -14,7 +14,7 @@ The current work is based on physical inspection of one Bublcam, local media and
 | Raw still and THM | Four-view JPEG layout confirmed; identical calibration decoded from one original JPEG and its list thumbnail |
 | Open-source stitcher | Independent geometric stitcher, batch runner, and local viewer integrated; one 4096×2048 panorama and a one-pair batch run verified here. Separate full-collection run reported 545/545; see [geometry findings](docs/stitching.md) |
 | Live streaming and video | RTSP and one short four-view MP4 verified; see [live test](research/live-capture-2026-09-24.md) |
-| USB networking | Camera enumerated once as `0525:A4A2` (`RNDIS/Ethernet Gadget` bus string), but Windows bound COM4/`usbser`, not Ethernet; reconnect failed with descriptor Code 43. No live USB network route; see [USB investigation](research/usb-live-investigation-2026-09-24.md) |
+| USB networking | A signed exact-ID RNDIS package from Microsoft Update Catalog replaced the incorrect COM4 binding on one Windows 11 PC. USB `192.168.2.2` answered ping and OSC; a short RTSP handshake succeeded. See [USB networking](docs/usb-network.md) |
 | UART / I²C | Pads identified; voltage and access unverified |
 | Root filesystem / FPGA | Filesystem not dumped; FPGA identified, bitstream not extracted |
 
@@ -45,7 +45,7 @@ For stitching, read the [independent geometry findings](docs/stitching.md) and t
 
 | Item | Observation |
 |---|---|
-| Camera | Bubl `bubl1`, tested serial `f4b85e1a4e97` |
+| Camera | Bubl `bubl1` (tested unit; serial kept private) |
 | Firmware | `2.1.1` |
 | Wi-Fi API | `192.168.0.100:80`; `X-XSRF-Protected: 1` required |
 | API component versions | `_bublAlteraVersion: 512`; `_bublAtmelVersion` was `"1"` in supplied JSON and `"2.2"` in a later saved response; see [evidence comparison](research/atmel-version.md) |
