@@ -14,7 +14,7 @@ The current work is based on physical inspection of one Bublcam, local media and
 | Raw still and THM | Four-view JPEG layout confirmed; identical calibration decoded from one original JPEG and its list thumbnail |
 | Open-source stitcher | Independent geometric stitcher, batch runner, and local viewer integrated; one 4096×2048 panorama and a one-pair batch run verified here. Separate full-collection run reported 545/545; see [geometry findings](docs/stitching.md) |
 | Live streaming and video | RTSP and one short four-view MP4 verified; see [live test](research/live-capture-2026-09-24.md) |
-| USB networking | `g_ether`/`usb0` strongly evidenced in archived logs; no camera-attributable USB interface enumerated on the tested Windows connection. See [live USB investigation](research/usb-live-investigation-2026-09-24.md) |
+| USB networking | Camera enumerated once as `0525:A4A2` (`RNDIS/Ethernet Gadget` bus string), but Windows bound COM4/`usbser`, not Ethernet; reconnect failed with descriptor Code 43. No live USB network route; see [USB investigation](research/usb-live-investigation-2026-09-24.md) |
 | UART / I²C | Pads identified; voltage and access unverified |
 | Root filesystem / FPGA | Filesystem not dumped; FPGA identified, bitstream not extracted |
 

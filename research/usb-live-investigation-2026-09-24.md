@@ -1,8 +1,55 @@
 # USB connection investigation, 2026-09-24
 
-**Outcome:** The camera was reported connected to this Windows laptop by USB, but no present USB device or interface could be unambiguously attributed to the Bublcam. The laptop had no Bublcam USB network adapter, COM port, or route to the historical USB subnet. The camera itself remained reachable through its separate Wi-Fi connection. This is a negative observation for this host/cable/connection at this moment, **not** proof that the camera lacks USB gadget capability.
+**Updated outcome after a controlled cable-#3 before/unplug/reconnect comparison:** The Bublcam did enumerate once as `USB\VID_0525&PID_A4A2`, class `Ports`, friendly name `USB Serial Device (COM4)`. Its bus-reported description was `RNDIS/Ethernet Gadget`, but Windows bound `usbser`/`usbser.inf` and created **no USB network adapter**. After unplugging, COM4 disappeared. On reconnection at the same hub port, Windows instead reported a device-descriptor failure (Code 43); COM4 did not return. No `192.168.2.x` host interface or route was observed in any snapshot. The camera's live USB Ethernet, OSC, and RTSP access remain unverified. Do not treat the failure pseudo-ID `VID_0000&PID_0002` as the camera's real VID/PID.
 
-No USB driver, camera setting, Windows network setting, firmware, or gadget configuration was changed. No camera reboot, USB stream, photo, recording, credential attempt, or broad port scan occurred. Raw camera media and device serials are not included here.
+No USB driver, camera setting, Windows network setting, firmware, or gadget configuration was changed. No camera reboot, USB stream, photo, recording, credential attempt, COM-port write, or broad port scan occurred. Raw camera media and device serials are not included here.
+
+## Controlled cable-#3 comparison
+
+With the camera kept powered on, a private PowerShell snapshot captured all present `Get-PnpDevice` entries, all `Get-NetAdapter -IncludeHidden` records, `Get-NetIPConfiguration -All`, `ipconfig /all`, and `route print` in each state. The user unplugged only cable #3 between the first two snapshots, then reconnected it before the third. Raw snapshots are retained outside Git under `bubl_research/responses/usb_snapshots/`:
+
+| State | Present PnP devices | Adapter records | Camera-associated USB node |
+|---|---:|---:|---|
+| Connected before unplug (`22:53:44` local) | 223 | 24 | `USB Serial Device (COM4)`, status OK |
+| Disconnected (`22:54:19`) | 222 | 24 | None |
+| Reconnected (`22:55:15`; confirmed again `22:56:32`) | 223 | 24 | `Unknown USB Device (Device Descriptor Request Failed)`, Code 43 |
+
+The complete InstanceId diff was exactly COM4 disappearing on unplug, then the descriptor-failure node appearing on reconnect. There was no network-adapter identity diff or IP-interface diff. The 24 adapter records include hidden/virtual adapters; none was a Bublcam USB network adapter. `Get-NetIPConfiguration`, `ipconfig /all`, and `route print` showed no `192.168.2.x` interface or USB route in any state. No ping or OSC request to `192.168.2.2` was sent.
+
+The successful connected node's Windows PnP data:
+
+| Field | Observed value |
+|---|---|
+| Class / friendly name | `Ports` / `USB Serial Device (COM4)` |
+| InstanceId | `USB\VID_0525&PID_A4A2\6&22C573BB&0&1` |
+| Hardware ID | `USB\VID_0525&PID_A4A2&REV_0316` (plus unversioned ID) |
+| VID / PID / MI | `0525` / `A4A2` / no `MI_` interface number in the PnP ID |
+| USB compatible class | `Class_02`, `SubClass_02`, `Prot_FF` (from Windows compatible IDs; not a complete raw descriptor dump) |
+| Bus-reported description | `RNDIS/Ethernet Gadget` |
+| Device description | `USB Serial Device` |
+| Manufacturer | Windows driver provider `Microsoft`; actual USB manufacturer string not established |
+| Service / driver | `usbser` / `usbser.inf`, `USB Serial Device`, version `10.0.26100.9278` |
+| Parent / location | `USB\ROOT_HUB30\5&209565c2&0&0`; `...XHC3.RHUB.PRT1`, port 1 |
+| Children/interfaces | No separate child/interface PnP node or `MI_` ID appeared in the diff; endpoint layout not available from these Windows properties |
+| Status / problem | `OK` / no problem in first connected snapshot; subsequently non-present (`CM_PROB_PHANTOM`) |
+
+The reconnect failure was on the same hub port/location (`6&22C573BB&0&1` suffix), but Windows could not read its device descriptor. Its PnP fields were:
+
+| Field | Reconnect failure node |
+|---|---|
+| Class / friendly name | `USB` / `Unknown USB Device (Device Descriptor Request Failed)` |
+| InstanceId | `USB\VID_0000&PID_0002\6&22C573BB&0&1` |
+| VID / PID / MI | `0000:0002` is a Windows placeholder; no real VID/PID or `MI_` available |
+| Manufacturer / description | Windows label `(Standard USB Host Controller)` / descriptor-request failure; no camera manufacturer or bus-reported product string available |
+| Service / driver | No functional camera service exposed; Windows failure driver `usb.inf` (`BADDEVICE.Dev.NT`) |
+| Parent / children | Same `USB\ROOT_HUB30\5&209565C2&0&0` port; no camera child/interface enumerated |
+| Status / problem | `Error`, Code 43 (`CM_PROB_FAILED_POST_START`) |
+
+That pseudo-ID is **not** a Bublcam USB identity. No endpoint, class, or serial descriptor can be recovered from this failed enumeration.
+
+The `RNDIS/Ethernet Gadget` product string agrees with the older `g_ether` logs, but a product string is not proof that Windows exposed a usable Ethernet interface. The observed `usbser` binding matches the reported class/subclass compatible ID and explains why Windows offered COM4 instead. Whether that binding reflects firmware descriptors, a Windows class-selection quirk, or an incomplete/unstable enumeration is unresolved. We did not open COM4 because the reconnect failed and the requested phase was passive PnP/network comparison only. No driver was installed or changed.
+
+## Earlier attachment snapshot (before cable #3 comparison)
 
 ## Reproducible read-only checks
 
@@ -35,7 +82,7 @@ tar -xOf C:\Projects\bubl\LOGS\16011210.TGZ var/log/all | rg -n -i -m 20 'g_ethe
 | `0BDA:8156` | Realtek Gaming USB 2.5GbE Family Controller | Active laptop Ethernet interface, `192.168.1.71/24` with gateway `192.168.1.254` |
 | `27C6:609C` | Framework Fingerprint Reader | Biometric device |
 
-Thus **Bublcam VID/PID, USB class/subclass/protocol, configuration/interface count, endpoints, manufacturer/product strings, and USB serial are undetermined**. There was no pre-attachment enumeration snapshot, so this check cannot prove whether any transient device briefly appeared and disappeared. A past non-present Windows entry for an unknown USB descriptor failure does not identify this camera and was not treated as live evidence.
+At that earlier snapshot, **Bublcam VID/PID and interface descriptors were undetermined**. There was no pre-attachment enumeration snapshot, so that check could not prove whether a transient device briefly appeared and disappeared. The controlled cable-#3 comparison above supersedes that limited conclusion and links the descriptor-failure location to the disappearing COM4 node.
 
 The present network adapters included the laptop's Realtek USB Ethernet (`ifIndex 14`, `192.168.1.71/24`), Wi-Fi (`ifIndex 19`, `192.168.0.10/24`), and unrelated virtual/tunnel adapters. None had `192.168.2.1`, and `route print -4` showed no `192.168.2.0/24` on-link route. A packet to `192.168.2.2` would have followed the ordinary default route via `192.168.1.254`, not a verified USB link. Therefore **no ping to 192.168.2.2 was sent**, and no HTTP or port probe was misrepresented as USB traffic. No Windows address or route was added.
 
@@ -56,8 +103,8 @@ There is stronger **historical network evidence** in `16011210.TGZ` `var/log/all
 | OSC `/osc/info`, `/osc/state` | Both HTTP 200 | Not live-testable; historical Scarlet HTTP on `.2.2:80` rejected headerless requests |
 | RTSP | Previously confirmed over Wi-Fi with dynamic endpoint | Not tested; no USB network path |
 | SSH/Telnet/targeted ports | Not tested in this USB phase | Not tested; do **not** infer ports are closed |
-| USB CDC ACM / COM | Not applicable | No present COM interface attributable to camera |
-| USB class/descriptors | Not applicable | Camera VID/PID and interfaces unknown |
+| USB CDC ACM / COM | Not applicable | COM4 appeared once with `usbser`, then disappeared on reconnect failure; no serial data tested |
+| USB class/descriptors | Not applicable | Successful VID/PID `0525:A4A2`, compatible class `02/02/FF`; full descriptors/endpoints unknown |
 | Latency/stability | One Wi-Fi info/state request: ~355/~29 ms | No measurement possible |
 
-USB cannot currently be recommended as the main development/control connection on this Windows setup. The historical `g_ether` evidence makes it worth retesting after the user confirms the camera's USB data port, a known data-capable cable, and an attachment event. Capture a before/after PnP snapshot while attaching; if a USB network adapter appears, establish its identity and route before pinging `192.168.2.2` or probing OSC/RTSP. Do not install an unusual driver or alter gadget mode as a discovery step.
+USB cannot currently be recommended as the main development/control connection on this Windows setup. The descriptor failure after reconnect is a reason to stop further probing in this session and inspect the physical cable/connector/power situation before any new test. If a later stable attachment produces a genuine network adapter, establish its identity and route before pinging `192.168.2.2` or probing OSC/RTSP. Do not install an unusual driver or alter gadget mode as a discovery step.

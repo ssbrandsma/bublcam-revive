@@ -25,7 +25,7 @@
 - FPGA configured at boot.
 - older Node.js and later Scarlet generation.
 - USB Ethernet gadget.
-- Archived logs explicitly show `g_ether` ready and Avahi on `usb0` at `192.168.2.2`; another historical log records Scarlet HTTP requests from `192.168.2.1` to `.2.2:80` rejected for missing the required header. The live Windows attachment on 2026-09-24 showed no camera-attributable USB device or USB route. USB networking remains unverified live.
+- Archived logs explicitly show `g_ether` ready and Avahi on `usb0` at `192.168.2.2`; another historical log records Scarlet HTTP requests from `192.168.2.1` to `.2.2:80` rejected for missing the required header. A controlled 2026-09-24 Windows unplug diff identified `0525:A4A2` as `RNDIS/Ethernet Gadget` in the bus description, but Windows bound `usbser` as COM4, not a network adapter. Reconnection failed device-descriptor enumeration (Code 43). USB networking remains unverified live.
 - FFmpeg in firmware logs; the live RTSP server identifies itself as GStreamer.
 - Matched-feature tests reported across nine frames strongly favor camera-to-world `R`, zero extra quadrant turns, and equisolid-angle over equidistant or stereographic. See [stitching findings](../docs/stitching.md).
 

@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+Compared connected, unplugged, and reconnected Windows PnP snapshots for USB cable #3. Identified Bublcam `0525:A4A2` as a COM4/`usbser` binding with `RNDIS/Ethernet Gadget` bus string; reconnection produced descriptor failure Code 43. No USB network adapter or `192.168.2.x` route appeared.
+
 Documented a non-destructive Windows USB attachment check: no camera-attributable USB interface or `192.168.2.x` route was present, so USB services were not probed. Correlated archived `g_ether`/`usb0` lines with historical Scarlet HTTP requests from `.2.1` to `.2.2:80`.
 
 Integrated the separate project's geometric stitcher, batch runner, and local WebGL viewer; added a feature-score validation wrapper. Verified one full-size panorama, one-pair batch run, zero inferred turns, and all six reported model/convention scores on `BUBL0001` while keeping media private.
