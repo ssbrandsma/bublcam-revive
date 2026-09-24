@@ -1,7 +1,9 @@
 # Changelog
 
 ## Unreleased
-Documented the separately reported 545-image stitching result, per-image calibration variation, feature-supported geometry, and remaining focal-scale/parallax uncertainties. The mature separate-project code is not yet included.
+Integrated the separate project's geometric stitcher, batch runner, and local WebGL viewer; added a feature-score validation wrapper. Verified one full-size panorama, one-pair batch run, zero inferred turns, and all six reported model/convention scores on `BUBL0001` while keeping media private.
+
+Documented the separately reported 545-image stitching result, per-image calibration variation, feature-supported geometry, and remaining focal-scale/parallax uncertainties.
 
 Verified a controlled OSC1 session, 41 live non-sensitive option values, one new still capture, a stoppable RTSP stream, and one short MP4 recording on firmware 2.1.1. Captured media remains private.
 

@@ -12,7 +12,7 @@ The current work is based on physical inspection of one Bublcam, local media and
 | Wi-Fi and OSC API | `/osc/info`, `/osc/state`, image list, metadata and original download confirmed on firmware 2.1.1; one list response reported 545 entries |
 | Still capture | One fresh four-view JPEG captured and downloaded on firmware 2.1.1 |
 | Raw still and THM | Four-view JPEG layout confirmed; identical calibration decoded from one original JPEG and its list thumbnail |
-| Open-source stitcher | Separate independent stitcher reportedly produced 545/545 usable panoramas; mature implementation not yet integrated here. Current included scaffold remains exploratory; see [geometry findings](docs/stitching.md) |
+| Open-source stitcher | Independent geometric stitcher, batch runner, and local viewer integrated; one 4096×2048 panorama and a one-pair batch run verified here. Separate full-collection run reported 545/545; see [geometry findings](docs/stitching.md) |
 | Live streaming and video | RTSP and one short four-view MP4 verified; see [live test](research/live-capture-2026-09-24.md) |
 | USB networking | Suggested by logs; not verified on this unit |
 | UART / I²C | Pads identified; voltage and access unverified |
@@ -39,7 +39,7 @@ For a local `.THM` file, extract the embedded calibration JSON:
 python tools/calibration/extract_calibration.py YOUR_FILE.THM -o calibration.json
 ```
 
-For stitching research, read the [independent geometry findings](docs/stitching.md). The [included scaffold](tools/stitcher/README.md) predates the reported successful batch implementation and should not be mistaken for it. No private sample media is bundled.
+For stitching, read the [independent geometry findings](docs/stitching.md) and the [stitcher usage notes](tools/stitcher/README.md). Use your own matching JPG/THM pair; no private sample media is bundled.
 
 ## Observed camera and media
 
@@ -63,7 +63,7 @@ The original pack in the inspected camera consists of two LiPo pouches in parall
 |---|---|
 | Hardware and disassembly | [Hardware](docs/hardware.md), [disassembly](docs/disassembly.md), [battery](docs/battery.md) |
 | Protocol and connectivity | [Network](docs/network.md), [OSC API](docs/api.md), [streaming](docs/streaming.md), [USB networking](docs/usb-network.md) |
-| Imaging | [Raw format](docs/image-format.md), [calibration](docs/calibration.md), [stitching findings](docs/stitching.md), [included scaffold](tools/stitcher/README.md), [early experiment](research/stitching-bubl0628.md) |
+| Imaging | [Raw format](docs/image-format.md), [calibration](docs/calibration.md), [stitching findings](docs/stitching.md), [stitcher](tools/stitcher/README.md), [early experiment](research/stitching-bubl0628.md) |
 | Firmware and debug | [Firmware](docs/firmware.md), [UART / I²C](docs/uart.md) |
 | Project | [Findings and open questions](research/known-findings.md), [session analysis](research/session-exclusive-use.md), [Atmel version evidence](research/atmel-version.md), [contributing](CONTRIBUTING.md) |
 

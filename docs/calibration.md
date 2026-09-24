@@ -34,6 +34,6 @@ Do **not** hard-code these values; calibration is per device/capture.
 
 A separate investigation reported 545 matching JPG/THM pairs, three calibration UUIDs, and one UUID with two closely related variants. Calibration must therefore be read from the matching THM per image, never treated as one global setting. SIFT feature correspondences strongly support `R` as camera-to-world, `R.T` for inverse world-to-camera mapping, zero extra source quarter-turns, and equisolid-angle as the best of three tested simple lens models. See [stitching method and evidence](stitching.md).
 
-The exact proprietary projection, focal scale/image-circle radius interpretation, higher-order distortion, and parallax correction remain unresolved. The working focal-scale rule uses the nearest quadrant border as an inferred radius, not a known calibration field. The separate feature-validation implementation was not yet available here for independent rerun.
+The exact proprietary projection, focal scale/image-circle radius interpretation, higher-order distortion, and parallax correction remain unresolved. The working focal-scale rule uses the nearest quadrant border as an inferred radius, not a known calibration field. The [integrated validation wrapper](../tools/stitcher/research/validate_geometry.py) reproduces the reported six model/convention scores for the local `BUBL0001` pair.
 
 Use `tools/calibration/extract_calibration.py`.

@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bublcam panorama viewer</title>
+  <style>
+    :root { color-scheme: dark; font: 14px/1.4 system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #101114; }
+    canvas { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+    canvas:active { cursor: grabbing; }
+    .toolbar { position: absolute; top: 16px; left: 16px; right: 16px; display: flex;
+      flex-wrap: wrap; align-items: center; gap: 8px; pointer-events: none; }
+    .toolbar > * { pointer-events: auto; }
+    button, .file-button { border: 1px solid #ffffff50; border-radius: 8px; padding: 8px 12px;
+      background: #181a1dcc; color: white; font: inherit; cursor: pointer; }
+    button:hover, .file-button:hover { background: #30343a; }
+    .file-button input { display: none; }
+    #name { padding: 7px 10px; border-radius: 8px; background: #181a1dcc;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: min(40vw, 360px); }
+    #status { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      max-width: min(90vw, 500px); padding: 14px 18px; text-align: center;
+      border-radius: 10px; background: #181a1de8; color: white; }
+    .hint { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+      padding: 7px 11px; border-radius: 8px; background: #181a1dcc;
+      color: #e4e4e4; text-align: center; pointer-events: none; }
+    @media (max-width: 600px) { .hint { width: max-content; max-width: 90vw; } }
+  </style>
+</head>
+<body>
+  <canvas id="view" aria-label="Interactive 360 degree panorama"></canvas>
+  <div class="toolbar">
+    <label class="file-button">Open panorama<input id="file" type="file" accept="image/*"></label>
+    <button id="reset" type="button">Reset view</button>
+    <button id="fullscreen" type="button">Fullscreen</button>
+    <span id="name">BUBL0001_equirect.jpg</span>
+  </div>
+  <div id="status" role="status">Loading panorama…</div>
+  <div class="hint">Drag to look around · Scroll to zoom</div>
+  <script>
+    'use strict';
+    const canvas = document.getElementById('view');
+    const status = document.getElementById('status');
+    const nameLabel = document.getElementById('name');
+    const gl = canvas.getContext('webgl', { antialias: false, alpha: false });
+    if (!gl) {
+      status.textContent = 'WebGL is unavailable in this browser.';
+      throw new Error('WebGL unavailable');
+    }
+
+    function compile(type, source) {
+      const shader = gl.createShader(type);
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        throw new Error(gl.getShaderInfoLog(shader));
+      }
+      return shader;
+    }
+    const vertex = compile(gl.VERTEX_SHADER, `
+      attribute vec2 position;
+      varying vec2 screen;
+      void main() { screen = position; gl_Position = vec4(position, 0.0, 1.0); }
+    `);
+    const fragment = compile(gl.FRAGMENT_SHADER, `
+      precision highp float;
+      varying vec2 screen;
+      uniform sampler2D panorama;
+      uniform float yaw;
+      uniform float pitch;
+      uniform float tangent;
+      uniform float aspect;
+      const float PI = 3.141592653589793;
+      void main() {
+        vec3 forward = vec3(cos(pitch) * sin(yaw), cos(pitch) * cos(yaw), sin(pitch));
+        vec3 right = vec3(cos(yaw), -sin(yaw), 0.0);
+        vec3 up = vec3(-sin(pitch) * sin(yaw), -sin(pitch) * cos(yaw), cos(pitch));
+        vec3 ray = normalize(forward + screen.x * aspect * tangent * right
+                                   + screen.y * tangent * up);
+        float longitude = atan(ray.x, ray.y);
+        vec2 uv = vec2(fract(longitude / (2.0 * PI) + 0.5),
+                       0.5 + asin(clamp(ray.z, -1.0, 1.0)) / PI);
+        gl_FragColor = texture2D(panorama, uv);
+      }
+    `);
+    const program = gl.createProgram();
+    gl.attachShader(program, vertex);
+    gl.attachShader(program, fragment);
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      throw new Error(gl.getProgramInfoLog(program));
+    }
+    gl.useProgram(program);
+    const vertices = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertices);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+    const position = gl.getAttribLocation(program, 'position');
+    gl.enableVertexAttribArray(position);
+    gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+    const uniforms = Object.fromEntries(['yaw', 'pitch', 'tangent', 'aspect']
+      .map(key => [key, gl.getUniformLocation(program, key)]));
+    const texture = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.uniform1i(gl.getUniformLocation(program, 'panorama'), 0);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
+    let yaw = 0, pitch = 0, fov = 75, ready = false, drag = null, objectUrl = null;
+    let frame = 0;
+    function render() {
+      frame = 0;
+      if (!ready) return;
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const width = Math.max(1, Math.round(canvas.clientWidth * ratio));
+      const height = Math.max(1, Math.round(canvas.clientHeight * ratio));
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width; canvas.height = height;
+        gl.viewport(0, 0, width, height);
+      }
+      gl.uniform1f(uniforms.yaw, yaw);
+      gl.uniform1f(uniforms.pitch, pitch);
+      gl.uniform1f(uniforms.tangent, Math.tan(fov * Math.PI / 360));
+      gl.uniform1f(uniforms.aspect, width / height);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    }
+    function requestRender() { if (!frame) frame = requestAnimationFrame(render); }
+    function loadImage(url, label) {
+      ready = false;
+      status.hidden = false;
+      status.textContent = `Loading ${label}…`;
+      const image = new Image();
+      image.onload = () => {
+        if (image.width !== image.height * 2) {
+          status.textContent = `${label} must be a 2:1 equirectangular image.`;
+          return;
+        }
+        try {
+          gl.bindTexture(gl.TEXTURE_2D, texture);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
+          const error = gl.getError();
+          if (error !== gl.NO_ERROR) throw new Error(`WebGL error ${error}`);
+          nameLabel.textContent = label;
+          status.hidden = true;
+          ready = true;
+          requestRender();
+        } catch (error) {
+          status.textContent = 'This browser blocked local image loading. Use Open panorama to select the JPEG.';
+          console.error(error);
+        }
+      };
+      image.onerror = () => {
+        status.textContent = 'Could not load the default panorama. Use Open panorama to select a JPEG.';
+      };
+      image.src = url;
+    }
+    canvas.addEventListener('pointerdown', event => {
+      drag = { id: event.pointerId, x: event.clientX, y: event.clientY };
+      canvas.setPointerCapture(event.pointerId);
+    });
+    canvas.addEventListener('pointermove', event => {
+      if (!drag || event.pointerId !== drag.id) return;
+      yaw -= (event.clientX - drag.x) * 0.004;
+      pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2,
+        pitch + (event.clientY - drag.y) * 0.004));
+      drag.x = event.clientX; drag.y = event.clientY;
+      requestRender();
+    });
+    canvas.addEventListener('pointerup', () => { drag = null; });
+    canvas.addEventListener('pointercancel', () => { drag = null; });
+    canvas.addEventListener('wheel', event => {
+      event.preventDefault();
+      fov = Math.max(30, Math.min(110, fov * Math.exp(event.deltaY * 0.001)));
+      requestRender();
+    }, { passive: false });
+    window.addEventListener('resize', requestRender);
+    document.getElementById('reset').onclick = () => {
+      yaw = 0; pitch = 0; fov = 75; requestRender();
+    };
+    document.getElementById('fullscreen').onclick = () => {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    };
+    document.getElementById('file').onchange = event => {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      objectUrl = URL.createObjectURL(file);
+      loadImage(objectUrl, file.name);
+    };
+    loadImage('BUBL0001_equirect.jpg', 'BUBL0001_equirect.jpg');
+  </script>
+</body>
+</html>

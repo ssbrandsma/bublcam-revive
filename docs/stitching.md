@@ -1,6 +1,6 @@
 # Independent geometric stitching
 
-An independently developed stitcher has reportedly produced usable 2:1 equirectangular panoramas from Bublcam multiplex JPEGs using the calibration in each image's matching THM. This is **not** a recovery or bit-exact recreation of Bubl's proprietary stitching algorithm. The full-collection results and feature scores below were supplied by a separate investigation; its mature source code and complete dataset were not available in this workspace for independent rerun at the time of this documentation update. The older scaffold currently under `tools/stitcher/` does not implement all of the method described here.
+The included [independently developed stitcher](../tools/stitcher/README.md) produces usable 2:1 equirectangular panoramas from Bublcam multiplex JPEGs using each image's matching THM calibration. This is **not** a recovery or bit-exact recreation of Bubl's proprietary stitching algorithm. The separate project's full 545-image run has not been independently repeated in this workspace; the integrated code was verified here on the local `BUBL0001` pair, including a 4096×2048 output and a one-pair batch smoke test.
 
 ## Input and calibration
 
@@ -20,7 +20,7 @@ Three simple fisheye models were compared by unprojecting matched SIFT points an
 | Equisolid-angle | 266.25 | 138.50 |
 | Stereographic | 6.25 | 11.50 |
 
-Higher scores indicated better agreement, including a preference for matched rays within about 5° and then 2°. The scale and exact scoring implementation need the separate validation code for full reproducibility. Equisolid-angle is the best **tested simple approximation**, not a proven exact lens law. Its radial model is `r = 2f sin(θ/2)`.
+Higher scores indicated better agreement, including a preference for matched rays within about 5° and then 2°. The integrated [validation tool](../tools/stitcher/research/validate_geometry.py) reproduced all six reported scores on the local `BUBL0001` pair; it wraps the stitcher's SIFT scoring method. Equisolid-angle is the best **tested simple approximation**, not a proven exact lens law. Its radial model is `r = 2f sin(θ/2)`.
 
 The working implementation interprets stored FOV as full angular diameter, with `θmax = FOV/2`, and estimates focal scale by setting the image-circle radius to the distance from optical centre to the nearest quadrant border: `f = radius / (2 sin(θmax/2))`. This radius rule is an **inferred assumption**, not a measured image-circle boundary. It is a leading candidate for residual geometry error.
 
@@ -38,6 +38,8 @@ The useful next tests are feature-based optimization of FOV-to-radius scale, cro
 
 The earlier [single-image exploratory sweep](../research/stitching-bubl0628.md) used a different pixel-disagreement score and an older scaffold; it did not establish geometry. Its apparent preference for rotated candidates is superseded by direct matched-feature evidence, but remains useful as a record of why visual/pixel similarity alone can mislead.
 
-## Implementation integration status
+## Included implementation and verification
 
-The separate project is reported to include `bubl_stitch.py`, `stitch_all.py`, `requirements.txt`, `viewer.html`, and a README. Its stitcher reportedly processes output in row strips, uses OpenCV bilinear remapping, supports selectable lens models/conventions/quarter-turns/blend modes and debug outputs, while its batch tool pairs JPGs with THMs and writes a CSV report. The local WebGL viewer reportedly has no external libraries or uploads. None of those newer files was supplied with this update or found in this workspace, so the public repository still contains its earlier exploratory scaffold. The reported feature-validation code should be brought in with the mature project so these conclusions can be reproduced, without copying original photos, thumbnails, private calibration samples, or generated panoramas.
+`tools/stitcher/` now contains the separate project's mature `bubl_stitch.py`, `stitch_all.py`, `requirements.txt`, `viewer.html`, and adapted README. The stitcher processes output in row strips, uses OpenCV bilinear remapping, and supports selectable lens models, matrix conventions, turns, blend modes, sizes, and debug views. The batch runner pairs uppercase `.JPG`/`.THM` files and writes `batch_report.csv`; its default is equisolid, camera-to-world, zero-turn geometry. The local WebGL viewer has no external library or upload. A small [validation wrapper](../tools/stitcher/research/validate_geometry.py) prints six geometry scores without writing media.
+
+In this workspace, the integrated code rendered the local `BUBL0001` pair at 4096×2048, inferred `0/0/0/0` turns with score 266.25, and completed a one-pair 1024×512 batch run with `ok` in the CSV. The output was visually coherent but had close-object double images. No private photograph, thumbnail, full calibration, or generated panorama was copied into Git. The complete 545-image dataset was not available here to rerun the full batch claim.

@@ -37,5 +37,8 @@ calibration.json
 *.pcap
 *.pcapng
 debug/
+stitched/
+sd_contents/
+batch_report.csv
 downloads/
 responses/
