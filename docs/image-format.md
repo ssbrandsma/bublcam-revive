@@ -9,7 +9,7 @@ A locally available `BUBL0001.JPG` is 3840×3840 and visibly contains four 1920�
 +-------------+-------------+
 ```
 
-A separate image (`bubl0628.jpg`) listed and downloaded through firmware 2.1.1 is also 3840×3840. Visual inspection confirms four circular fisheye views in a 2×2 layout; the exact raster split is 1920×1920 per quadrant. The source's calibration JSON uses names `topLeft`, `topRight`, `bottomLeft`, and `bottomRight`, but the three inspected Bubl source repositories do not explicitly establish that those names correspond to the four raster positions. Earlier research reported a 2048×2048 four-view still (~1024×1024 views), but that file was not available for this repository validation. Do not assume one fixed capture resolution.
+A separate image (`bubl0628.jpg`) listed and downloaded through firmware 2.1.1 is also 3840×3840. Visual inspection confirms four circular fisheye views in a 2×2 layout; the exact raster split is 1920×1920 per quadrant. A separate investigation measured all 545 JPGs in its SD-card collection at 3840×3840 with matching THMs, and SIFT feature matching on nine frames supported the direct `topLeft`, `topRight`, `bottomLeft`, `bottomRight` raster mapping without extra quarter-turns. That validates this collection, not every possible capture mode. Derive quadrant size from each input rather than hard-coding it. An earlier 2048×2048 report was incorrect for this dataset; the local `BUBL0001.JPG` is 3840×3840.
 
 ## Observed still metadata
 
@@ -23,7 +23,7 @@ The decoded JSON has top-level keys `cameras`, `factory`, `timestamp`, `uuid`, a
 
 ## Meaning of `_bublMultiplex`
 
-**Strong inference:** for this 3840×3840 still, the label identifies Bubl's unstitched four-view mosaic rather than a finished equirectangular panorama. That inference rests on the returned metadata and the visible 2×2 source layout. A search of [ScarletTests](https://github.com/BublTechnology/ScarletTests), [osc-client](https://github.com/BublTechnology/osc-client), and [spherical-metadata](https://github.com/BublTechnology/spherical-metadata) found no definition of `_bublMultiplex` or `bublMultiplex`; `spherical-metadata` only uses generic projection fields. The exact intended format contract, quadrant naming, lens model, and viewer behavior remain undocumented.
+**Strong inference:** for this 3840×3840 still, the label identifies Bubl's unstitched four-view mosaic rather than a finished equirectangular panorama. That inference rests on the returned metadata and the visible 2×2 source layout. A search of [ScarletTests](https://github.com/BublTechnology/ScarletTests), [osc-client](https://github.com/BublTechnology/osc-client), and [spherical-metadata](https://github.com/BublTechnology/spherical-metadata) found no definition of `_bublMultiplex` or `bublMultiplex`; `spherical-metadata` only uses generic projection fields. The original format contract and stitching algorithm remain undocumented; an [independent stitcher geometry](stitching.md) has been reported.
 
 The matching `.THM` is itself a JPEG thumbnail (one sample: 960×960) with strings/metadata including:
 ```text
@@ -37,4 +37,4 @@ wb_gain_b
 calibration=
 ```
 
-Video logs show 1920×1920 H.264 capture; it is strongly suspected to be the same four-view mosaic concept, but this needs confirmation from an actual original video.
+A live 1920×1920 H.264 capture confirmed four 960×960 fisheye quadrants in a decoded frame; see [streaming](streaming.md).

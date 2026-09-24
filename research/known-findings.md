@@ -12,7 +12,8 @@
 - One new 3840×3840 JPEG and one short 1920×1920 MP4 were captured; both show a 2×2 four-fisheye layout. The MP4 contains H.264 and 16 kHz mono AAC.
 - `_bublStream` returned a dynamic RTSP endpoint on port 8554. RTSP `OPTIONS` and `DESCRIBE` succeeded; SDP announced H.264 video and MP4A-LATM audio. The stream was stopped and reached `done`.
 - Stable boot at 4.00 V / >=1 A limit; ~0.6 A running.
-- The local `BUBL0001.JPG` is a 3840×3840 four-fisheye 2×2 mosaic. An earlier 2048×2048 still was reported but was not available for this repository validation.
+- The local `BUBL0001.JPG` is a 3840×3840 four-fisheye 2×2 mosaic. A separate investigation reports all 545 JPGs in its SD-card collection are 3840×3840 with 545 matching THMs, and 545 readable 4096×2048 panoramas were produced. The complete batch and mature source have not been independently rerun in this workspace.
+- The reported collection contains three calibration UUIDs, one with two closely related variants; use the matching THM for each image.
 - THM = JPEG with Base64 factory calibration.
 - Mechanical hinge pins can be removed without disturbing camera carriers.
 
@@ -25,6 +26,7 @@
 - older Node.js and later Scarlet generation.
 - USB Ethernet gadget.
 - FFmpeg in firmware logs; the live RTSP server identifies itself as GStreamer.
+- Matched-feature tests reported across nine frames strongly favor camera-to-world `R`, zero extra quadrant turns, and equisolid-angle over equidistant or stereographic. See [stitching findings](../docs/stitching.md).
 
 ## Open
 - Exact sensors, Atmel MCU, RAM/flash, Wi-Fi chip, charger/protection IC.
@@ -32,7 +34,7 @@
 - Whether the earlier failed PowerShell client actually opened the session; its response was not captured.
 - Live RTP frame decoding, nominal stream frame rate, and long-duration stability.
 - Meaning of `_bublMultiplex`, calibration `factory:false`, and quadrant-name mapping.
-- Exact fisheye model, matrix convention and quadrant rotation.
+- Exact proprietary fisheye law and original Bubl stitching algorithm; focal-scale/image-circle assumption; residual radial distortion and depth-dependent parallax correction.
 - Rootfs `/opt/bubl`, Scarlet binary, FPGA bitstream.
 - Update verification/decryption mechanism.
 - Open standalone controller and production-quality still/video stitcher.

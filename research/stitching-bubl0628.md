@@ -1,5 +1,7 @@
 # Experimental stitching of `bubl0628.jpg`
 
+**Historical experiment:** this used an early scaffold and pixel-disagreement ranking. Later SIFT feature correspondences on nine frames, described in [stitching findings](../docs/stitching.md), strongly support equisolid-angle, camera-to-world `R`, and zero extra quadrant turns. The results below should not be read as contradicting that stronger geometric test.
+
 All media and generated panoramas in this experiment remain in the private local `bubl_research/downloads/` directory. Nothing in this repository includes the source photograph, thumbnail, decoded UUID, or visual output.
 
 ## Inputs and method
@@ -35,6 +37,6 @@ An offline diagnostic script evaluated all `4^4 = 256` quadrant-rotation assignm
 
 Full diagnostic scores and the top candidate's projections, coverage, and both blend modes are retained locally. A close alternative for equisolid/`R.T` (`90,180,270,270`, score 0.1433) was also rendered. Visual inspection shows that none of these candidates aligns the same bench, people, road, and horizon consistently across overlaps. The `R` candidates still have large holes; `R.T` candidates retain obvious seam and orientation errors. No rotations or offsets have been hard-coded as a default.
 
-## Open geometry questions
+## Questions at the time of this early experiment
 
 The raster positions may not map directly to calibration keys; `R` may require an additional coordinate-frame transform; per-camera pixel handedness, 90-degree orientation, lens projection, and distortion may differ from the scaffold's assumptions. A useful next experiment is to mark matched features in adjacent raw quadrants, test camera-key permutations and coordinate conventions, then compare reprojection error on those correspondences. A smooth blended image alone is insufficient evidence of correct geometry.

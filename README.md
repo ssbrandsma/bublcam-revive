@@ -12,7 +12,7 @@ The current work is based on physical inspection of one Bublcam, local media and
 | Wi-Fi and OSC API | `/osc/info`, `/osc/state`, image list, metadata and original download confirmed on firmware 2.1.1; one list response reported 545 entries |
 | Still capture | One fresh four-view JPEG captured and downloaded on firmware 2.1.1 |
 | Raw still and THM | Four-view JPEG layout confirmed; identical calibration decoded from one original JPEG and its list thumbnail |
-| Open-source stitcher | Four model/matrix combinations and 90° source rotations tested; overlaps still misalign |
+| Open-source stitcher | Separate independent stitcher reportedly produced 545/545 usable panoramas; mature implementation not yet integrated here. Current included scaffold remains exploratory; see [geometry findings](docs/stitching.md) |
 | Live streaming and video | RTSP and one short four-view MP4 verified; see [live test](research/live-capture-2026-09-24.md) |
 | USB networking | Suggested by logs; not verified on this unit |
 | UART / I²C | Pads identified; voltage and access unverified |
@@ -39,7 +39,7 @@ For a local `.THM` file, extract the embedded calibration JSON:
 python tools/calibration/extract_calibration.py YOUR_FILE.THM -o calibration.json
 ```
 
-For experimental stitching, install [the stitcher requirements](tools/stitcher/requirements.txt) and consult [its usage notes](tools/stitcher/README.md). No private sample media is bundled.
+For stitching research, read the [independent geometry findings](docs/stitching.md). The [included scaffold](tools/stitcher/README.md) predates the reported successful batch implementation and should not be mistaken for it. No private sample media is bundled.
 
 ## Observed camera and media
 
@@ -51,7 +51,7 @@ For experimental stitching, install [the stitcher requirements](tools/stitcher/r
 | API component versions | `_bublAlteraVersion: 512`; `_bublAtmelVersion` was `"1"` in supplied JSON and `"2.2"` in a later saved response; see [evidence comparison](research/atmel-version.md) |
 | Original battery label | JP 573442, 3.7 V, 1560 mAh, 5.78 Wh |
 | Tested local raw still | `BUBL0001.JPG` is 3840×3840 with four 1920×1920 fisheye views |
-| Earlier size report | A 2048×2048 four-view raw still was reported in earlier research, but that file was not available for this repository validation |
+| Earlier size report | A prior 2048×2048 report was incorrect for the investigated 545-image collection; `BUBL0001.JPG` is 3840×3840 |
 | Later camera image | API listed and downloaded a separate 3840×3840 four-view JPEG; `bublfile://` URI, `_bublMultiplex` API projection, and 960×960 list thumbnail confirmed |
 | THM | JPEG thumbnail carrying `calibration=` followed by Base64 JSON; the corresponding original JPEG carries the same payload in EXIF MakerNote |
 
@@ -63,7 +63,7 @@ The original pack in the inspected camera consists of two LiPo pouches in parall
 |---|---|
 | Hardware and disassembly | [Hardware](docs/hardware.md), [disassembly](docs/disassembly.md), [battery](docs/battery.md) |
 | Protocol and connectivity | [Network](docs/network.md), [OSC API](docs/api.md), [streaming](docs/streaming.md), [USB networking](docs/usb-network.md) |
-| Imaging | [Raw format](docs/image-format.md), [calibration](docs/calibration.md), [stitcher](tools/stitcher/README.md), [second-image experiment](research/stitching-bubl0628.md) |
+| Imaging | [Raw format](docs/image-format.md), [calibration](docs/calibration.md), [stitching findings](docs/stitching.md), [included scaffold](tools/stitcher/README.md), [early experiment](research/stitching-bubl0628.md) |
 | Firmware and debug | [Firmware](docs/firmware.md), [UART / I²C](docs/uart.md) |
 | Project | [Findings and open questions](research/known-findings.md), [session analysis](research/session-exclusive-use.md), [Atmel version evidence](research/atmel-version.md), [contributing](CONTRIBUTING.md) |
 
