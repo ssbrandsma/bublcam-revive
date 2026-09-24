@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+Documented a non-destructive Windows USB attachment check: no camera-attributable USB interface or `192.168.2.x` route was present, so USB services were not probed. Correlated archived `g_ether`/`usb0` lines with historical Scarlet HTTP requests from `.2.1` to `.2.2:80`.
+
 Integrated the separate project's geometric stitcher, batch runner, and local WebGL viewer; added a feature-score validation wrapper. Verified one full-size panorama, one-pair batch run, zero inferred turns, and all six reported model/convention scores on `BUBL0001` while keeping media private.
 
 Documented the separately reported 545-image stitching result, per-image calibration variation, feature-supported geometry, and remaining focal-scale/parallax uncertainties.

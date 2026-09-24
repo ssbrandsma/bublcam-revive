@@ -2,6 +2,8 @@
 
 Bublcam implements an Open Spherical Camera-style API plus vendor extensions.
 
+The read-only API is confirmed over Wi-Fi on this unit. An attempted [USB connection investigation](../research/usb-live-investigation-2026-09-24.md) did not identify a USB network interface or route, so OSC over USB is **not** verified. Do not treat the historical USB address `192.168.2.2` as a working live endpoint without routing evidence.
+
 ## Advertised by live firmware 2.1.1
 ```text
 /osc/info

@@ -1,13 +1,14 @@
 # USB networking
 
-Logs suggest a USB Ethernet gadget (`g_ether`):
+Archived camera logs strongly evidence a Linux USB Ethernet gadget (`g_ether`) and `usb0` assigned `192.168.2.2`:
 ```text
 camera: 192.168.2.2
 host:   192.168.2.1
 ```
-Not yet re-verified on the current unit.
+An older Scarlet log also records HTTP requests to `192.168.2.2:80` from `192.168.2.1`; the requests lacked `X-XSRF-Protected` and were rejected. This establishes historical reachability of the Scarlet HTTP server at the USB-side address, not a successful OSC call or a currently working Windows USB link.
+On 2026-09-24, with the camera reported connected by USB to a Windows laptop, no present USB device, COM port, or network adapter could be attributed to the camera. The host had no `192.168.2.1` address and no route to `192.168.2.2` through USB. The camera remained reachable over Wi-Fi, but USB ping/OSC/RTSP and targeted USB TCP ports were **not** tested because traffic would not have used a verified USB link. Exact Bublcam USB VID/PID and interface descriptors remain unknown. See the [live investigation and reproducible checks](../research/usb-live-investigation-2026-09-24.md).
 
-Proposed test: boot normally, connect USB data, look for RNDIS/CDC Ethernet, configure host `192.168.2.1/24` if needed, then:
+Next safe test: confirm a data-capable cable and camera data port, then compare Windows PnP devices before and after connection. If an RNDIS/CDC Ethernet interface actually appears, identify its VID/PID and route; only then consider a host `192.168.2.1/24` address if necessary and explicitly authorized. After verifying that packets will traverse USB:
 ```bash
 ping 192.168.2.2
 curl -H "X-XSRF-Protected: 1" http://192.168.2.2/osc/info
