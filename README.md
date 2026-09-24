@@ -10,10 +10,10 @@ The current work is based on physical inspection of one Bublcam, local media and
 |---|---|
 | Power and battery | Original pack inspected; one camera booted on a current-limited bench supply |
 | Wi-Fi and OSC API | `/osc/info`, `/osc/state`, image list, metadata and original download confirmed on firmware 2.1.1; one list response reported 545 entries |
-| Still capture | Documented in original client; fresh capture on this unit still pending |
+| Still capture | One fresh four-view JPEG captured and downloaded on firmware 2.1.1 |
 | Raw still and THM | Four-view JPEG layout confirmed; identical calibration decoded from one original JPEG and its list thumbnail |
 | Open-source stitcher | Four model/matrix combinations and 90° source rotations tested; overlaps still misalign |
-| Live streaming and video | Command formats documented; live protocol and capture unverified on this unit |
+| Live streaming and video | RTSP and one short four-view MP4 verified; see [live test](research/live-capture-2026-09-24.md) |
 | USB networking | Suggested by logs; not verified on this unit |
 | UART / I²C | Pads identified; voltage and access unverified |
 | Root filesystem / FPGA | Filesystem not dumped; FPGA identified, bitstream not extracted |

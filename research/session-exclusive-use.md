@@ -1,6 +1,6 @@
 # OSC1 session and `cameraInExclusiveUse`
 
-This note separates the behavior documented by Bubl's original [ScarletTests client and tests](https://github.com/BublTechnology/ScarletTests) from observations on one firmware 2.1.1 camera. It does not establish that session ID `"0"` can safely be closed by a new client.
+This note separates the behavior documented by Bubl's original [ScarletTests client and tests](https://github.com/BublTechnology/ScarletTests) from observations on one firmware 2.1.1 camera. It does not justify closing an unknown client's session.
 
 ## Source facts
 
@@ -16,9 +16,12 @@ This note separates the behavior documented by Bubl's original [ScarletTests cli
 3. A later well-formed Python request to `camera.startSession` returned `cameraInExclusiveUse`. The preserved body is in the private research directory as `responses/startSession_python.txt`.
 4. The following `/osc/state` response showed `sessionId:"0"`, battery 56%, and `_bublCommands:[]`. It is preserved as `responses/retry_osc_state.txt` in the private research directory.
 5. A single follow-up read-only state request during this documentation pass timed out at TCP connect. It provides no new session evidence.
+6. On 2026-09-24, with `/osc/state` initially reporting an empty session ID, one controlled `camera.startSession` request returned `state:"done"`, `results.sessionId:"0"`, and `timeout:120`. `/osc/state` then reported `sessionId:"0"`. The client queried options, closed only its returned session ID, and confirmed `/osc/state` again reported an empty session ID. Raw logs are retained privately.
 
 ## Interpretation
 
-**Strong inference:** the first PowerShell request reached the camera and opened session `"0"`, although its client failed before recording the successful response. A second start during the 120-second window would then produce exactly the observed exclusive-use error. This fits Bubl's tests and the change from empty to nonempty `state.sessionId`.
+**Confirmed:** `"0"` can be a valid session ID on this unit. A client can close a session it demonstrably created with that returned ID. An empty string indicated no session in the controlled test.
 
-**Unresolved:** the first request's HTTP status/body were not captured, so another client or a firmware-side stale session cannot be ruled out. The exact lifetime and ownership of `"0"` were not independently verified. No `closeSession`, `updateSession`, `setOptions`, or session-ID-guessing command was sent. A future attempt should capture the initial response bytes reliably, record the returned ID, and close only the session created by that client.
+**Strong inference:** the first PowerShell request reached the camera and opened session `"0"`, although its client failed before recording the successful response. A second start during the 120-second window would then produce exactly the observed exclusive-use error. This fits Bubl's tests and the earlier change from empty to nonempty `state.sessionId`.
+
+**Unresolved:** the first PowerShell request's HTTP status/body were not captured, so another client or a firmware-side stale session cannot be ruled out. No unknown session was closed, and no `updateSession`, `setOptions`, or session-ID-guessing command was sent. Future clients should record the returned ID and close only their own session.
