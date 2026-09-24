@@ -12,6 +12,22 @@ def split(im):
     return {"topLeft":im[:hh,:hw],"topRight":im[:hh,hw:],
             "bottomLeft":im[hh:,:hw],"bottomRight":im[hh:,hw:]}
 
+
+def rotate_source(image, camera, degrees):
+    """Rotate pixels clockwise and keep the optical centre in the same place."""
+    quarter_turns = degrees // 90
+    rotated = np.ascontiguousarray(np.rot90(image, -quarter_turns))
+    centre = camera["centre"]
+    x, y = float(centre["x"]), float(centre["y"])
+    if degrees == 90:
+        x, y = 1 - y, x
+    elif degrees == 180:
+        x, y = 1 - x, 1 - y
+    elif degrees == 270:
+        x, y = y, 1 - x
+    rotated_camera = {**camera, "centre": {"x": x, "y": y}}
+    return rotated, rotated_camera
+
 def rays(W,H):
     x=(np.arange(W,dtype=np.float32)+.5)/W
     y=(np.arange(H,dtype=np.float32)+.5)/H
@@ -41,7 +57,15 @@ def main():
     p.add_argument("--matrix",choices=["R","RT"],default="RT")
     p.add_argument("--blend",choices=["none","feather"],default="feather")
     p.add_argument("--debug-dir")
+    p.add_argument("--rotations",default="0,0,0,0",
+        help="clockwise degrees for topLeft,topRight,bottomLeft,bottomRight (each 0/90/180/270)")
     a=p.parse_args()
+    try:
+        turns=[int(value) for value in a.rotations.split(",")]
+    except ValueError:
+        p.error("--rotations must contain four comma-separated integers")
+    if len(turns)!=4 or any(value not in (0,90,180,270) for value in turns):
+        p.error("--rotations must contain four values from 0,90,180,270")
     if a.width <= 0 or a.height <= 0:
         p.error("width and height must be positive")
     im=cv2.imread(a.jpg)
@@ -52,6 +76,8 @@ def main():
     qs=split(im); C=extract(a.thm); rr=rays(a.width,a.height)
     if any(name not in C["cameras"] for name in NAMES):
         p.error("calibration is missing one or more camera entries")
+    rotated={name:rotate_source(qs[name],C["cameras"][name],degree)
+             for name,degree in zip(NAMES,turns)}
     acc=np.zeros((a.height,a.width,3),np.float32);ws=np.zeros((a.height,a.width),np.float32)
     first=np.zeros_like(acc);have=np.zeros((a.height,a.width),bool);cov=np.zeros_like(have,dtype=np.uint8)
     dd=Path(a.debug_dir) if a.debug_dir else None
@@ -59,13 +85,14 @@ def main():
         dd.mkdir(parents=True,exist_ok=True)
         (dd/"calibration.json").write_text(json.dumps(C,indent=2))
     for n in NAMES:
-        mx,my,ok,wt=mapping(rr,C["cameras"][n],qs[n].shape,a.model,a.matrix)
-        v=cv2.remap(qs[n],mx,my,cv2.INTER_LINEAR,borderMode=cv2.BORDER_CONSTANT)
+        quadrant,camera=rotated[n]
+        mx,my,ok,wt=mapping(rr,camera,quadrant.shape,a.model,a.matrix)
+        v=cv2.remap(quadrant,mx,my,cv2.INTER_LINEAR,borderMode=cv2.BORDER_CONSTANT)
         new=ok&~have;first[new]=v[new];have|=ok;cov+=ok.astype(np.uint8)
         acc+=v.astype(np.float32)*wt[...,None];ws+=wt
         if dd:
             s=v.copy();s[~ok]=0;cv2.imwrite(str(dd/f"camera_{n}.jpg"),s)
-            cv2.imwrite(str(dd/f"quadrant_{n}.jpg"),qs[n])
+            cv2.imwrite(str(dd/f"quadrant_{n}.jpg"),quadrant)
     feather=np.clip(acc/np.maximum(ws,1e-8)[...,None],0,255).astype(np.uint8)
     feather[ws<=0]=0
     no_blend=np.clip(first,0,255).astype(np.uint8)

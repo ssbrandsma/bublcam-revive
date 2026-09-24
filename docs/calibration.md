@@ -1,6 +1,6 @@
 # Factory calibration
 
-The THM contains literal `calibration=` followed by Base64 JSON.
+The THM contains literal `calibration=` followed by Base64 JSON. In the downloaded `bubl0628.jpg` and its exact list thumbnail, the same JSON also appears in each JPEG's EXIF MakerNote. The two decoded objects compare equal. A THM is therefore not the only possible source of calibration for this firmware/media pair.
 
 Decoded structure includes per camera:
 - `fov`
@@ -8,6 +8,8 @@ Decoded structure includes per camera:
 - normalized `centre.x`, `centre.y`
 
 and global fields such as `version: "2015-04-15"` and `factory: true`.
+
+The `bubl0628` calibration instead has `factory: false`. Both values are observed; the flag's precise meaning is unknown. The complete per-image object also includes `timestamp` and `uuid`. Keep the UUID and image metadata private unless the owner approves publication.
 
 One real sample gave approximately:
 | camera | FOV |

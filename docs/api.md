@@ -36,7 +36,9 @@ Observed identity:
 
 Do not assume `gyro:false` means no physical gyro; semantics remain unknown.
 
-A later live `/osc/info` response on the same serial and firmware reported `_bublAtmelVersion: "2.2"`. This version field is time-dependent on the observed unit; do not treat either value as universal. The same live camera reported 56% battery, `sessionId: "0"`, and an empty `_bublCommands` array on `/osc/state`.
+A later live `/osc/info` response on the same serial and firmware reported `_bublAtmelVersion: "2.2"`. It is not known whether the value changed or the earlier value was transcribed incorrectly; do not treat either as universal. The same live camera reported 56% battery, `sessionId: "0"`, and an empty `_bublCommands` array on `/osc/state`.
+
+The first Atmel value came from a user-supplied JSON transcription; the later value came from a saved successful GET. The complete [evidence comparison](../research/atmel-version.md) leaves the reason for the difference unresolved.
 
 ## Verified request shapes
 
@@ -55,9 +57,61 @@ All requests below require `X-XSRF-Protected: 1`. JSON POST requests use `Conten
 
 For `camera.listImages`, a live request used `{"entryCount":100,"includeThumb":true,"maxSize":10000000}` and returned `state:"done"`, `totalEntries:545`, 100 entries, and `continuationToken:"100"`. Its first URI was `bublfile://dcim/100bublc/bubl0628.jpg`; the image downloaded at exactly 5,603,999 bytes. `camera.getMetadata` with `{"fileUri":"bublfile://dcim/100bublc/bubl0628.jpg"}` returned `_bublMultiplex` XMP projection and 3840×3840 dimensions. These are observations of one device's storage state, not fixed properties.
 
-`camera.startSession` with `{"timeout":120}` returned `cameraInExclusiveUse` during this investigation, although `/osc/state` showed no active Bubl command. The cause is unresolved. No session id was guessed or closed. Consequently the commands requiring a session were not tested live. A successful start response is specified by ScarletTests to include `results.sessionId` and `results.timeout`.
+`camera.startSession` with `{"timeout":120}` returned `cameraInExclusiveUse` during this investigation. `/osc/state` showed session ID `"0"` and no active Bubl command. A preceding client-side PowerShell error may have hidden a successful start response; see [session analysis](../research/session-exclusive-use.md). No session ID was guessed or closed, and the commands requiring a session were not tested live. A successful start response is specified by ScarletTests to include `results.sessionId` and `results.timeout`.
 
 The [ScarletTests option test](https://github.com/BublTechnology/ScarletTests/blob/master/server_tests/test/clientTests.js) requests these OSC1 option names: `captureMode`, `exposureProgram`, `iso`, `shutterSpeed`, `aperture`, `whiteBalance`, `exposureCompensation`, `fileFormat`, `exposureDelay`, `sleepDelay`, `offDelay`, `hdr`, `exposureBracket`, `gyro`, `gps`, `imageStabilization`, and `_bublVideoFileFormat`. These names come from source tests; values and support on this camera still need a successful `getOptions` call.
+
+### OSC1 `getOptions` inventory
+
+The original [client UI](https://github.com/BublTechnology/ScarletTests/blob/master/client_ui/src/app/main/main.factory.js) lists the following 43 queryable names; the [bubl1 support fixture](https://github.com/BublTechnology/ScarletTests/blob/master/server_tests/defaults/bubl1_supports.json) supplies example values. These are **source fixture values**, not observations of the physical camera. `R/W` means the UI also exposes a `setOptions` control; `R/?` means write support was not established. `Support` fields are capability reports and read-only in the UI. Persistence is unverified for every writable setting; `status` and `capability` denote read-only current state or reported support, respectively. A successful OSC1 session is needed before querying any option.
+
+| Option name | Read/write | Fixture value or support range | OSC/Bubl | Safe to query | Lifetime |
+|---|---|---|---|---|---|
+| `captureMode` | R/W | `image`, `_bublVideo` | OSC, Bubl value | Yes | Unknown |
+| `captureModeSupport` | R | `image`, `_bublVideo` | OSC, Bubl value | Yes | Capability |
+| `exposureProgram` | R/W | `2` | OSC | Yes | Unknown |
+| `exposureProgramSupport` | R | `[2]` | OSC | Yes | Capability |
+| `iso` | R/? | `0` | OSC | Yes | Unknown |
+| `isoSupport` | R | `[]` | OSC | Yes | Capability |
+| `shutterSpeed` | R/? | `0` | OSC | Yes | Unknown |
+| `shutterSpeedSupport` | R | `[]` | OSC | Yes | Capability |
+| `aperture` | R/? | `0` | OSC | Yes | Unknown |
+| `apertureSupport` | R | `[]` | OSC | Yes | Capability |
+| `whiteBalance` | R/W | `auto` | OSC | Yes | Unknown |
+| `whiteBalanceSupport` | R | `[auto]` | OSC | Yes | Capability |
+| `exposureCompensation` | R/? | `0` | OSC | Yes | Unknown |
+| `exposureCompensationSupport` | R | `[]` | OSC | Yes | Capability |
+| `fileFormat` | R/W | JPEG or raw, 3840×3840 | OSC | Yes | Unknown |
+| `fileFormatSupport` | R | JPEG/raw, 3840×3840 | OSC | Yes | Capability |
+| `exposureDelay` | R/W | Fixture `4`; UI offers `0`–`4` | OSC | Yes | Unknown |
+| `exposureDelaySupport` | R | `[4]` in fixture | OSC | Yes | Capability |
+| `sleepDelay` | R/W | Fixture `5` seconds | OSC | Yes | Unknown |
+| `sleepDelaySupport` | R | `1,5,10,30,60,300,600,1200,2400,65535` | OSC | Yes | Capability |
+| `offDelay` | R/W | Fixture `600` seconds | OSC | Yes | Unknown |
+| `offDelaySupport` | R | Same list as `sleepDelaySupport` | OSC | Yes | Capability |
+| `totalSpace` | R | Bytes; fixture 1 GiB | OSC | Yes | Status |
+| `remainingSpace` | R | Bytes; fixture 1 GiB | OSC | Yes | Status |
+| `remainingPictures` | R | Count; fixture `125` | OSC | Yes | Status |
+| `gpsInfo` | R/? | `{lat,lng}`; fixture zeros | OSC | Yes | Status/unknown |
+| `dateTimeZone` | R/? | `YYYY:MM:DD HH:MM:SS±HH:MM` | OSC | Yes | Status/unknown |
+| `hdr` | R/W | Boolean | OSC | Yes | Unknown |
+| `hdrSupport` | R | Boolean; fixture `true` | OSC | Yes | Capability |
+| `exposureBracket` | R/W | `{autoMode:true}`; UI also offers 3 shots with increment 0.5–3.0 | OSC | Yes | Unknown |
+| `exposureBracketSupport` | R | Fixture supports `{autoMode:true}` | OSC | Yes | Capability |
+| `gyro` | R | Boolean; fixture `false` | OSC | Yes | Status |
+| `gyroSupport` | R | Boolean; fixture `false` | OSC | Yes | Capability |
+| `gps` | R | Boolean; fixture `false` | OSC | Yes | Status |
+| `gpsSupport` | R | Boolean; fixture `false` | OSC | Yes | Capability |
+| `imageStabilization` | R/W | `off` | OSC | Yes | Unknown |
+| `imageStabilizationSupport` | R | `[off]` | OSC | Yes | Capability |
+| `wifiPassword` | R/W | Masked in fixture | OSC | Sensitive; avoid in public logs | Unknown |
+| `_bublVideoFileFormat` | R/W | MP4, 1920×1920 or 1440×1440 | Bubl | Yes | Unknown |
+| `_bublVideoFileFormatSupport` | R | Both MP4 sizes in fixture | Bubl | Yes | Capability |
+| `_bublCalibration` | R/W | String; fixture empty | Bubl | Sensitive; avoid in public logs | Unknown |
+| `_bublTimelapse` | R/? | `{interval:5}` in fixture | Bubl | Yes | Unknown |
+| `_bublCount` | R/? | `{count:[0,0],hdr:0,timelapse:0}` in fixture | Bubl | Yes | Status/unknown |
+
+No `getOptions` or `setOptions` call was made in this investigation. The fixture's `wifiPassword` is masked and is not a device credential.
 
 The [ScarletTests schema](https://github.com/BublTechnology/ScarletTests/blob/master/server_tests/lib/schema.js) requires `_bublStreamPort`, `_bublStreamEndpoint`, and `_bublAccelTilt` in an in-progress OSC1 stream response. Their actual values and transport protocol remain unobserved on this unit.
 

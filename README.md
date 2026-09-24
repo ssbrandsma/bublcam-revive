@@ -9,10 +9,10 @@ The current work is based on physical inspection of one Bublcam, local media and
 | Area | Status |
 |---|---|
 | Power and battery | Original pack inspected; one camera booted on a current-limited bench supply |
-| Wi-Fi and OSC API | `/osc/info`, `/osc/state`, image list, metadata and download confirmed on firmware 2.1.1 |
+| Wi-Fi and OSC API | `/osc/info`, `/osc/state`, image list, metadata and original download confirmed on firmware 2.1.1; one list response reported 545 entries |
 | Still capture | Documented in original client; fresh capture on this unit still pending |
-| Raw still and THM | Four-view JPEG layout and THM calibration decoded from local samples |
-| Open-source stitcher | Experimental; lens model and orientation convention unresolved |
+| Raw still and THM | Four-view JPEG layout confirmed; identical calibration decoded from one original JPEG and its list thumbnail |
+| Open-source stitcher | Four model/matrix combinations and 90° source rotations tested; overlaps still misalign |
 | Live streaming and video | Command formats documented; live protocol and capture unverified on this unit |
 | USB networking | Suggested by logs; not verified on this unit |
 | UART / I²C | Pads identified; voltage and access unverified |
@@ -48,12 +48,12 @@ For experimental stitching, install [the stitcher requirements](tools/stitcher/r
 | Camera | Bubl `bubl1`, tested serial `f4b85e1a4e97` |
 | Firmware | `2.1.1` |
 | Wi-Fi API | `192.168.0.100:80`; `X-XSRF-Protected: 1` required |
-| API component versions | `_bublAlteraVersion: 512`; `_bublAtmelVersion` was `"1"` in one supplied response and `"2.2"` in a later live response, so its meaning and change need investigation |
+| API component versions | `_bublAlteraVersion: 512`; `_bublAtmelVersion` was `"1"` in supplied JSON and `"2.2"` in a later saved response; see [evidence comparison](research/atmel-version.md) |
 | Original battery label | JP 573442, 3.7 V, 1560 mAh, 5.78 Wh |
 | Tested local raw still | `BUBL0001.JPG` is 3840×3840 with four 1920×1920 fisheye views |
 | Earlier size report | A 2048×2048 four-view raw still was reported in earlier research, but that file was not available for this repository validation |
-| Later camera image | API listed and downloaded a separate 3840×3840 JPEG; its layout has not been independently checked |
-| THM | JPEG thumbnail carrying `calibration=` followed by Base64 JSON |
+| Later camera image | API listed and downloaded a separate 3840×3840 four-view JPEG; `bublfile://` URI, `_bublMultiplex` API projection, and 960×960 list thumbnail confirmed |
+| THM | JPEG thumbnail carrying `calibration=` followed by Base64 JSON; the corresponding original JPEG carries the same payload in EXIF MakerNote |
 
 The original pack in the inspected camera consists of two LiPo pouches in parallel. With that pack disconnected, a 4.00 V supply limited to 0.5 A did not complete boot; a 1.0 A limit did. Running draw was approximately 0.6 A. These are observations from one setup; see [battery and power](docs/battery.md).
 
@@ -63,9 +63,9 @@ The original pack in the inspected camera consists of two LiPo pouches in parall
 |---|---|
 | Hardware and disassembly | [Hardware](docs/hardware.md), [disassembly](docs/disassembly.md), [battery](docs/battery.md) |
 | Protocol and connectivity | [Network](docs/network.md), [OSC API](docs/api.md), [streaming](docs/streaming.md), [USB networking](docs/usb-network.md) |
-| Imaging | [Raw format](docs/image-format.md), [calibration](docs/calibration.md), [stitcher](tools/stitcher/README.md) |
+| Imaging | [Raw format](docs/image-format.md), [calibration](docs/calibration.md), [stitcher](tools/stitcher/README.md), [second-image experiment](research/stitching-bubl0628.md) |
 | Firmware and debug | [Firmware](docs/firmware.md), [UART / I²C](docs/uart.md) |
-| Project | [Findings and open questions](research/known-findings.md), [contributing](CONTRIBUTING.md) |
+| Project | [Findings and open questions](research/known-findings.md), [session analysis](research/session-exclusive-use.md), [Atmel version evidence](research/atmel-version.md), [contributing](CONTRIBUTING.md) |
 
 Findings in the docs use **Confirmed** for direct observations or verified source code, **Strongly evidenced** for conclusions supported by multiple clues, and **Hypothesis** for ideas that still need testing.
 
